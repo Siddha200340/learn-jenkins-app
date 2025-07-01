@@ -1,11 +1,8 @@
-import { Cipher } from "crypto"
-import { version } from "os"
-
 pipeline {
     agent any
 
     stages {
-        stage(Build) {
+        stage('Build') {  // Stage names should be quoted
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -14,10 +11,11 @@ pipeline {
             }
             steps {
                 sh '''
-                    la -la 
+                    ls -la 
                     node --version
                     npm --version
-                    npm ci 
+                    npm ci
+                '''  // Fixed missing closing quotes and command (changed la -la to ls -la)
             }
         }
         stage('Test') {
@@ -31,6 +29,7 @@ pipeline {
                 sh '''
                     test -f build/index.html
                     npm test
+                '''  // Fixed missing closing quotes
             }
         }
     }
