@@ -1,5 +1,6 @@
 pipeline {
   agent any
+  
   stages {
     stage('Build') {
       agent {
@@ -15,10 +16,11 @@ pipeline {
           npm --version
           npm ci
           npm run build
-          ls -la
+          ls -la build/
         '''
       }
     }
+    
     stage('Test') {
       agent {
         docker {
@@ -28,31 +30,39 @@ pipeline {
       }
       steps {
         sh '''
-          test -f build/index.html
+          if [ ! -f build/index.html ]; then
+            echo "Error: build/index.html not found!"
+            exit 1
+          fi
           npm test
         '''
       }
     }
+    
     stage('E2E') {
       agent {
         docker {
           image 'mcr.microsoft.com/playwright:v1.53.0-noble'
           reuseNode true
+          args '-u root'  // Run as root to avoid permission issues
         }
       }
       steps {
         sh '''
-          npm install serve
-          nohup node_modules/.bin/serve -s build &
-          sleep 11
+          npm install -g serve
+          SERVER_PID=$(nohup serve -s build -l 3000 >/dev/null 2>&1 & echo $!)
+          sleep 5  // Wait for server to start
           npx playwright test
+          kill $SERVER_PID  // Clean up server process
         '''
       }
     }
   }
+  
   post {
     always {
       junit 'test-results/junit.xml'
+      sh 'pkill -f "serve -s build"'  // Ensure server is killed even if tests fail
     }
   }
 }
