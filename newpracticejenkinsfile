@@ -2,7 +2,6 @@ pipeline {
   agent any
   environment {
     NETLIFY_PROJECT_ID = '05319116-5a1f-4831-a0b7-9c4f4dd08631' 
-    NETLIFY_AUTH_TOKEN = credentials('netlify-token')
   }
   stages {
     stage('Build') {
@@ -39,7 +38,8 @@ pipeline {
       }
     }
     
-    stage('Deploy') {
+    /*
+    stage('E2E') {
       agent {
         docker {
           image 'node:18-alpine'
@@ -47,12 +47,42 @@ pipeline {
         }
       }
       steps {
-        withCredentials([string(credentialsId: 'netlify-token', variable: 'NETLIFY_AUTH_TOKEN')]) {
-          sh '''
-            npm install netlify-cli
-            netlify deploy --prod --dir=build --auth=${NETLIFY_AUTH_TOKEN} --site=${NETLIFY_PROJECT_ID}
-          '''
+        sh '''
+          npm install serve
+          node_modules/.bin/serve -s build &
+          sleep 11
+          npx playwright test
+        '''
+      }
+    }
+    */
+    
+    stage('Deploy') {
+      agent {
+        docker {
+          image 'node:18-alpine'
+          reuseNode true
         }
+      }
+    
+    stage('Deploy to Netlify') {
+    steps {
+        withCredentials([string(credentialsId: 'NETLIFY_AUTH', variable: 'NETLIFY_AUTH_TOKEN')]) {
+            sh '''
+                npm install -g netlify-cli
+                cd build/
+                netlify link --id YOUR_SITE_ID
+                netlify deploy --prod --dir=./
+            '''
+        }
+    }
+
+      steps {
+        sh '''
+          npm install netlify-cli
+          node_modules/.bin/netlify --version 
+          echo "Deploying to production . Site ID: $NETLIFY_PROJECT_ID" 
+        '''
       }
     }
   }
