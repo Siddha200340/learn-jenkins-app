@@ -3,7 +3,6 @@ pipeline {
   environment {
     NETLIFY_SITE_ID = '05319116-5a1f-4831-a0b7-9c4f4dd08631'
   }
-  /*
   stages {
     stage('Build') {
       agent {
@@ -22,7 +21,6 @@ pipeline {
           ls -la 
         '''
       }
-      */
     }
     
     stage('test') {
