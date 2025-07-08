@@ -1,15 +1,37 @@
 pipeline {
-    agent any  // Runs on any available Jenkins agent
+    agent any
+    options {
+        skipStagesAfterUnstable()
+    }
+     tools {
+        maven 'jenkinsMaven'  // Must match the name in Global Tools
+    }
+    
+
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm  // ← This pulls your GitHub code
+            }
+        }
         stage('Build') {
             steps {
-                echo 'Building...'
-                sh 'echo "Hello from Jenkins!"'  // Runs a shell command
+                sh 'mvn -B -DskipTests clean package'
             }
         }
         stage('Test') {
             steps {
-                echo 'Testing....'
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Deliver') { 
+            steps {
+                sh './jenkins/scripts/deliver.sh' 
             }
         }
     }
