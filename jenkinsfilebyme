@@ -4,7 +4,7 @@ pipeline {
         skipStagesAfterUnstable()
     }
      tools {
-        maven 'jenkinsMaven'  // Must match the name in Global Tools
+        maven 'jenkinsMaven'  // must match the name in Global Tools
     }
     
 
