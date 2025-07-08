@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm  // ← This pulls your GitHub code
+                checkout scm  // ← ThiS pulls your GitHub code
             }
         }
         stage('Build') {
