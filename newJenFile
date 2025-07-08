@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    options {
+        skipStagesAfterUnstable()
+    }
+     tools {
+        maven 'jenkinsMaven'  // must match the name in Global Tools
+    }
+    
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm  // ← This pulls your GitHub code
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn -B -DskipTests clean package'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Deliver') { 
+            steps {
+                sh './jenkins/scripts/deliver.sh' 
+            }
+        }
+    }
+}
